@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#04070d">
+<title>Miki BTC Desk | 星と君ぷろじぇくと</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap">
+<style>
+:root{--bg:#04070d;--p1:#0d1a2e;--p2:#08101e;--ln:rgba(61,224,255,.2);--tx:#d8e6f7;--mu:#6f86a6;--cy:#3de0ff;--gd:#ffc94d;--up:#2dffa4;--dn:#ff4d6a}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+html{background:var(--bg)}
+body{min-height:100vh;color:var(--tx);font:13px/1.5 "Chakra Petch","Zen Kaku Gothic New",system-ui,sans-serif;background:radial-gradient(1100px 560px at 75% -8%,rgba(61,224,255,.12),transparent 60%),radial-gradient(800px 500px at -5% 105%,rgba(255,201,77,.07),transparent 60%),repeating-linear-gradient(0deg,rgba(61,224,255,.03) 0 1px,transparent 1px 4px),var(--bg);padding-top:env(safe-area-inset-top)}
+.top{display:flex;align-items:center;gap:16px;height:46px;padding:0 14px;border-bottom:1px solid var(--ln);background:rgba(4,7,13,.8);backdrop-filter:blur(8px);position:sticky;top:env(safe-area-inset-top);z-index:20}
+.brand{font-weight:700;letter-spacing:.16em;color:var(--cy);white-space:nowrap;text-shadow:0 0 12px rgba(61,224,255,.6)}
+.live{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--up);margin-right:8px;box-shadow:0 0 10px var(--up);animation:pl 1.6s infinite}
+.live.off{background:var(--dn);box-shadow:0 0 10px var(--dn)}
+@keyframes pl{50%{opacity:.35}}
+.tape{flex:1;overflow:hidden;white-space:nowrap;mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+.tape div{display:inline-flex;gap:34px;animation:mq 45s linear infinite}
+@keyframes mq{to{transform:translateX(-50%)}}
+.clk{font-variant-numeric:tabular-nums;color:var(--mu);white-space:nowrap;font-size:12px;text-align:right;line-height:1.2}
+.clk b{color:var(--tx);font-weight:600}
+main{display:grid;gap:12px;padding:12px;grid-template-columns:270px 1fr 350px;grid-template-areas:"watch chart gauge" "watch chart inds" "ratio ratio inds"}
+.p{position:relative;background:linear-gradient(180deg,var(--p1),var(--p2));border:1px solid var(--ln);border-radius:6px;padding:14px;min-width:0}
+.p::before,.p::after{content:"";position:absolute;width:12px;height:12px;border:2px solid var(--cy);opacity:.8}
+.p::before{top:-1px;left:-1px;border-right:0;border-bottom:0}
+.p::after{bottom:-1px;right:-1px;border-left:0;border-top:0}
+.p h2{font-size:11px;font-weight:600;letter-spacing:.2em;color:var(--mu);margin-bottom:10px;text-transform:uppercase}
+.watch{grid-area:watch}.chart{grid-area:chart}.gauge{grid-area:gauge}.inds{grid-area:inds}.ratio{grid-area:ratio}
+.wl{display:grid;gap:8px}
+.wc{display:grid;grid-template-columns:1fr auto;gap:2px 8px;padding:10px;border:1px solid transparent;border-radius:6px;background:rgba(255,255,255,.03);cursor:pointer;text-align:left;color:inherit;font:inherit;transition:border-color .15s,background .15s}
+.wc:hover{background:rgba(61,224,255,.08)}
+.wc.on{border-color:var(--cy);background:rgba(61,224,255,.1);box-shadow:0 0 18px rgba(61,224,255,.15)}
+.wc b{font-size:15px;font-variant-numeric:tabular-nums}
+.wc small{color:var(--mu)}
+.wc svg{grid-row:1/3;grid-column:2;width:84px;height:34px}
+.chip{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:700;border:1px solid currentColor}
+.u{color:var(--up)}.d{color:var(--dn)}.n{color:var(--gd)}
+.hd{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:baseline;justify-content:space-between;margin-bottom:8px}
+.hd .nm{font-size:20px;font-weight:700}
+.hd .pr{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums}
+.tfs{display:flex;gap:6px;flex-wrap:wrap}
+.tfs button,.tabs button,.rail button{font:inherit;color:var(--mu);background:transparent;border:1px solid var(--ln);border-radius:5px;cursor:pointer;padding:4px 12px;transition:.15s}
+.tfs button.on{color:#021018;background:var(--cy);border-color:var(--cy);font-weight:700}
+.tfs button:hover:not(.on){color:var(--tx)}
+canvas{width:100%;height:420px;display:block}
+.gv{text-align:center}
+.gv svg{width:100%;max-width:300px}
+.verdict{font-size:22px;font-weight:700;margin-top:-6px}
+.pm{display:flex;justify-content:space-between;font-weight:700;font-size:15px;margin-top:12px;font-variant-numeric:tabular-nums}
+.pb{height:10px;border-radius:6px;background:var(--dn);overflow:hidden;position:relative;margin-top:6px}
+.pb i{position:absolute;right:0;top:0;bottom:0;background:var(--up);transition:width .4s}
+.sm{font-size:11px;color:var(--mu);margin-top:4px}
+.kv{display:grid;grid-template-columns:1fr auto;gap:5px 10px;margin-top:12px;padding-top:10px;border-top:1px dashed var(--ln);font-variant-numeric:tabular-nums}
+.kv span{color:var(--mu)}.kv b{text-align:right}
+.ib{display:grid;grid-template-columns:86px 1fr 44px;gap:10px;align-items:center;padding:4px 0}
+.bar{position:relative;height:6px;background:rgba(255,255,255,.07);border-radius:4px}
+.bar i{position:absolute;top:0;bottom:0;border-radius:4px}
+.bar::after{content:"";position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:rgba(255,255,255,.3)}
+.ib b{text-align:right;font-variant-numeric:tabular-nums}
+.rg{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;align-items:center}
+.rg svg{width:100%;height:56px}
+.big{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
+.err{display:none;margin:12px;padding:12px;border:1px solid var(--dn);border-radius:6px;background:rgba(255,77,106,.1)}
+.err.on{display:block}
+footer{text-align:center;color:var(--mu);font-size:11px;line-height:1.9;padding:10px 14px 28px}
+footer b{color:var(--gd)}
+.rail,.tabs{display:none}
+@media(min-width:700px) and (max-width:1099px){
+body{padding-left:92px}
+.rail{display:flex;flex-direction:column;gap:10px;position:fixed;left:0;top:calc(46px + env(safe-area-inset-top));bottom:0;width:84px;padding:12px 8px;border-right:1px solid var(--ln);background:rgba(4,7,13,.85);z-index:10}
+.rail button{display:flex;flex-direction:column;align-items:center;padding:12px 2px;color:var(--tx)}
+.rail button small{color:var(--mu);font-size:10px}
+.rail button.on{border-color:var(--cy);box-shadow:inset 0 0 14px rgba(61,224,255,.25),0 0 14px rgba(61,224,255,.2)}
+main{grid-template-columns:1fr 1fr;grid-template-areas:"chart chart" "gauge inds" "ratio watch"}
+.wl{grid-template-columns:1fr 1fr}
+canvas{height:360px}
+.clk span{display:none}
+}
+@media(max-width:699px){
+body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
+.top{gap:10px}.tape,.clk span{display:none}
+.rail{display:flex;gap:8px;overflow-x:auto;padding:10px 12px 0;scrollbar-width:none}
+.rail button{flex:0 0 auto;display:flex;gap:8px;align-items:baseline;border-radius:20px;color:var(--tx);padding:6px 14px}
+.rail button small{color:var(--mu)}
+.rail button.on{border-color:var(--cy);background:rgba(61,224,255,.14)}
+main{display:block;padding:10px 12px}
+main>.p{display:none;margin-bottom:12px}
+main[data-tab=chart] .chart,main[data-tab=chart] .gauge,main[data-tab=ana] .inds,main[data-tab=ana] .ratio,main[data-tab=list] .watch{display:block}
+canvas{height:280px}
+.hd .pr{font-size:30px}
+.tfs{width:100%}.tfs button{flex:1;padding:6px 0}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(4,7,13,.92);backdrop-filter:blur(10px);border-top:1px solid var(--ln);padding:8px 10px calc(8px + env(safe-area-inset-bottom));gap:8px}
+.tabs button{padding:10px 0;font-weight:700}
+.tabs button.on{color:#021018;background:var(--cy);border-color:var(--cy)}
+}
+@media(prefers-reduced-motion:reduce){.tape div,.live{animation:none}}
+.mr{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;padding:9px 8px;border:1px solid transparent;border-radius:6px;background:rgba(255,255,255,.03);cursor:pointer;width:100%;font:inherit;color:inherit;text-align:left;margin-bottom:6px;transition:.15s}
+.mr:hover{background:rgba(61,224,255,.08)}
+.mr.on{border-color:var(--cy);background:rgba(61,224,255,.1);box-shadow:0 0 16px rgba(61,224,255,.15)}
+.al{margin-top:8px;padding:9px 10px;border-radius:6px;border:1px dashed var(--ln);font-size:12px;color:var(--mu)}
+.al.hot{border:1px solid var(--up);color:var(--up);box-shadow:0 0 14px rgba(45,255,164,.25)}
+.al.hotd{border:1px solid var(--dn);color:var(--dn);box-shadow:0 0 14px rgba(255,77,106,.25)}
+.card{padding:10px 12px;border:1px solid var(--ln);border-radius:6px;background:rgba(255,255,255,.03)}
+.lq{display:grid;gap:4px;font-size:12px;font-variant-numeric:tabular-nums;max-height:160px;overflow:auto}
+.lq div{display:flex;justify-content:space-between;gap:10px}
+.bell{background:none;border:1px solid var(--ln);border-radius:5px;color:var(--tx);cursor:pointer;padding:2px 8px;font-size:14px}
+.p h2.sp{margin-top:16px}
+@media(max-width:1099px){.tfs{display:none}}
+.bo{grid-area:bo}
+.bt{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:10px}
+.bt button,.bt input,.bt select{font:inherit;color:var(--tx);background:rgba(255,255,255,.07);border:1px solid var(--ln);border-radius:6px;padding:6px 12px}
+.bt button{cursor:pointer}
+.bt button.go{background:var(--cy);color:#021018;border-color:var(--cy);font-weight:700}
+.bt input[type=range]{padding:0;width:110px;accent-color:var(--cy)}
+.bt input[type=number]{width:72px}
+.bt label{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mu)}
+.bs{font-size:34px;font-weight:700;text-align:center;letter-spacing:.04em}
+.bst{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center;margin:12px 0}
+.bst b{display:block;font-size:18px;font-variant-numeric:tabular-nums}
+.bst span{font-size:11px;color:var(--mu)}
+.bh{max-height:150px;overflow:auto;font-size:12px;font-variant-numeric:tabular-nums}
+.bh div{display:flex;justify-content:space-between;gap:8px;padding:3px 0;border-top:1px solid var(--ln)}
+.bk{display:none;margin-top:8px;padding:9px;border:1px solid var(--dn);border-radius:6px;background:rgba(255,77,106,.1);font-size:12px}
+.bk.on{display:block}
+@media(min-width:1100px){main{grid-template-areas:"watch chart gauge" "bo chart inds" "ratio ratio inds"}}
+@media(min-width:700px) and (max-width:1099px){main{grid-template-areas:"chart chart" "gauge inds" "bo watch" "ratio ratio"}}
+@media(max-width:699px){.tabs{grid-template-columns:repeat(4,1fr)}main[data-tab=bo] .bo,main[data-tab=bo] .chart{display:block}}
+#fx{position:fixed;inset:0;z-index:60;pointer-events:none;display:none;overflow:hidden}
+#fx.on{display:block}
+#fx .fl{position:absolute;inset:0;opacity:0;animation:fxf 1.2s ease-out forwards}
+#fx.up .fl{background:radial-gradient(circle at 50% 42%,rgba(45,255,164,.5),rgba(45,255,164,.1) 45%,transparent 72%);box-shadow:inset 0 0 130px 36px rgba(45,255,164,.7)}
+#fx.dn .fl{background:radial-gradient(circle at 50% 42%,rgba(255,77,106,.5),rgba(255,77,106,.1) 45%,transparent 72%);box-shadow:inset 0 0 130px 36px rgba(255,77,106,.7)}
+@keyframes fxf{0%{opacity:0}10%{opacity:1}30%{opacity:.45}45%{opacity:.9}100%{opacity:0}}
+#fx .fb{position:absolute;left:50%;top:42%;text-align:center;opacity:0;animation:fxb 2.5s cubic-bezier(.2,1.3,.3,1) forwards}
+#fx .fb div{font:700 clamp(56px,15vw,160px)/1 "Chakra Petch",sans-serif;letter-spacing:.05em;text-shadow:0 0 28px currentColor,0 0 90px currentColor}
+#fx .fb small{display:block;letter-spacing:.6em;color:#fff;opacity:.85;margin-top:6px;font-size:13px}
+#fx.up .fb{color:var(--up)}#fx.dn .fb{color:var(--dn)}
+@keyframes fxb{0%{opacity:0;transform:translate(-50%,-50%) scale(.3) rotate(-5deg)}14%{opacity:1;transform:translate(-50%,-50%) scale(1.18)}24%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-62%) scale(1.08)}}
+#fxp{position:absolute;left:50%;top:42%}
+#fx.up #fxp{color:var(--up)}#fx.dn #fxp{color:var(--dn)}
+#fxp i{position:absolute;width:9px;height:9px;margin:-4px;border-radius:50%;background:currentColor;box-shadow:0 0 14px currentColor;opacity:0;animation:fxp 1.5s ease-out forwards}
+@keyframes fxp{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--x),var(--y)) scale(.2)}}
+body.shk main{animation:shk .55s}
+@keyframes shk{10%,50%,90%{transform:translateX(-7px)}30%,70%{transform:translateX(7px)}}
+#soon{position:fixed;left:50%;top:calc(58px + env(safe-area-inset-top));transform:translate(-50%,-16px);z-index:55;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;width:min(88vw,430px);padding:10px 16px;border-radius:10px;border:1px solid var(--gd);background:rgba(20,14,0,.85);backdrop-filter:blur(8px);box-shadow:0 0 30px rgba(255,201,77,.45)}
+#soon.on{opacity:1;transform:translate(-50%,0)}
+.sb{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-weight:700;letter-spacing:.14em;color:var(--gd);font-size:14px}
+#soon.u #sl{color:var(--up)}#soon.d #sl{color:var(--dn)}
+.sb b{font-size:12px;letter-spacing:.04em;color:var(--tx)}
+.sbar{height:6px;border-radius:4px;background:rgba(255,255,255,.1);margin-top:8px;overflow:hidden}
+.sbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gd),#fff);transition:width .3s}
+#edge{position:fixed;inset:0;z-index:50;pointer-events:none;opacity:0;box-shadow:inset 0 0 90px 12px rgba(255,201,77,.55)}
+body.soon.su #edge{box-shadow:inset 0 0 90px 12px rgba(45,255,164,.5)}
+body.soon.sd #edge{box-shadow:inset 0 0 90px 12px rgba(255,77,106,.5)}
+body.soon #edge{animation:edg .8s ease-in-out infinite alternate}
+@keyframes edg{from{opacity:.2}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){body.soon #edge{animation:none;opacity:.7}#fxp{display:none}#fx .fb,#fx .fl{animation-duration:.01s;animation-fill-mode:none;opacity:1}body.shk main{animation:none}}
+</style>
+</head>
+<body>
+<header class="top">
+<div class="brand"><span class="live" id="lv"></span>MIKI BTC DESK</div>
+<div class="tape"><div id="tp"></div></div>
+<button class="bell" id="bl">🔕</button><div class="clk">JST <b id="jt">--:--:--</b><span><br>UTC <b id="ut">--:--:--</b></span></div>
+</header>
+<div id="fx"><div class="fl"></div><div class="fb"><div id="fxt"></div><small>SIGNAL</small></div><div id="fxp"></div></div>
+<div id="soon"><div class="sb"><span id="sl">SIGNAL SOON</span><b id="sc"></b></div><div class="sbar"><i id="sp"></i></div></div>
+<div id="edge"></div>
+<nav class="rail" id="rail"></nav>
+<div class="err" id="er">データを取得できません。Binanceに接続できない環境(地域制限・ネットワーク)の可能性があります。しばらくして再読み込みしてください。</div>
+<main id="mn" data-tab="chart">
+<section class="p watch"><h2>Multi Timeframe</h2><div id="wl"></div><div class="al" id="al">-</div></section>
+<section class="p chart">
+<div class="hd"><div class="nm" id="nm">-</div><div class="pr" id="pr">-</div><div class="tfs" id="tf"></div></div>
+<canvas id="cv"></canvas>
+</section>
+<section class="p gauge"><h2>Signal Gauge</h2>
+<div class="gv"><svg viewBox="0 0 200 118"><defs><linearGradient id="g"><stop offset="0" stop-color="#ff4d6a"/><stop offset=".5" stop-color="#ffc94d"/><stop offset="1" stop-color="#2dffa4"/></linearGradient></defs><path d="M20 100A80 80 0 0 1 180 100" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="12" stroke-linecap="round"/><path d="M20 100A80 80 0 0 1 180 100" fill="none" stroke="url(#g)" stroke-width="12" stroke-linecap="round" opacity=".9"/><g id="nd" style="transition:transform .6s;transform-origin:100px 100px"><line x1="100" y1="100" x2="100" y2="34" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="100" cy="100" r="7" fill="#fff"/></g></svg>
+<div class="verdict" id="vd">-</div></div>
+<div class="pm"><span class="d" id="pl">DOWN -</span><span class="u" id="ph">UP -</span></div>
+<div class="pb"><i id="pbar" style="width:50%"></i></div>
+<div class="sm" id="pn">-</div>
+<div class="kv" id="kv"></div>
+</section>
+<section class="p bo"><h2 id="bh2">Binary Mode (3分)</h2>
+<div class="bt"><button id="bon" class="go">BOモード開始</button><label>満期<select id="bhz"><option value="3" selected>3分</option><option value="5">5分</option></select></label><label>感度<input id="bth" type="range" min="30" max="80" value="45"><span id="bthv">0.45</span></label></div>
+<div class="bs n" id="bsig">OFF</div><div class="sm" style="text-align:center" id="bsub">開始を押すと1分足に切り替わります</div><div class="big" style="text-align:center;margin-top:4px" id="bcd">--:--</div>
+<div class="bst"><div><b class="u" id="bw">0</b><span>勝ち</span></div><div><b class="d" id="bl2">0</b><span>負け</span></div><div><b id="br">-</b><span>勝率</span></div><div><b id="bn">-</b><span>必要勝率</span></div></div>
+<div class="bt"><label>ペイアウト<input id="bpo" type="number" step="0.01" value="1.85"></label><label>連敗上限<input id="bml" type="number" min="1" max="20" value="3"></label><button id="bcl">履歴消去</button><button id="bfx">演出テスト</button></div>
+<div class="bk" id="bk">連敗上限に達したため停止中です。休憩してください。<br><button id="bun" style="margin-top:6px;cursor:pointer;font:inherit;color:inherit;background:rgba(255,255,255,.1);border:1px solid var(--ln);border-radius:6px;padding:4px 10px">停止を解除</button></div>
+<div class="bh" id="bh"></div></section>
+<section class="p inds"><h2>Indicator Matrix</h2><div id="ind"></div><div class="kv" id="rg"></div></section>
+<section class="p ratio"><h2>Derivatives &amp; Flow</h2><div class="rg" id="rt"></div><h2 class="sp">Liquidations (LIVE)</h2><div class="lq" id="lq"></div></section>
+</main>
+<nav class="tabs" id="tabs"><button data-t="chart" class="on">チャート</button><button data-t="ana">分析</button><button data-t="list">一覧</button><button data-t="bo">BO</button></nav>
+<footer>分析・学習用の参考表示です。売買の推奨や結果の保証ではありません。<br>© 星と君ぷろじぇくと / Produced by <b>Onoda &amp; Miki</b></footer>
+<script>
+const $=s=>document.querySelector(s);
+const TFS=["1m","5m","15m","1h","4h","1d"],MT=["5m","15m","1h","4h","1d"];
+const HZ=5;
+const BPD={"1m":1440,"5m":288,"15m":96,"1h":24,"4h":6,"1d":1};
+const TFM={"1m":1,"5m":5,"15m":15,"1h":60,"4h":240,"1d":1440};
+const span=m=>m<60?m+"分":m<1440?m/60+"時間":m/1440+"日";
+const S={tf:"15m",k:{},dv:{},liq:[],ws:null,lw:null,lt:0,al:0,snd:false,ac:null};
+const vshort=v=>v>=.5?"強買":v>=.2?"買い":v>-.2?"中立":v>-.5?"売り":"強売";
+const clip=x=>Math.max(-1,Math.min(1,x));
+const mean=a=>a.reduce((x,y)=>x+y,0)/a.length;
+const ema=(a,p)=>{const k=2/(p+1);let e=a[0];return a.map((v,i)=>i?e=v*k+e*(1-k):e)};
+const rsi=(a,p=14)=>{let g=0,l=0;for(let i=1;i<=p;i++){const d=a[i]-a[i-1];d>0?g+=d:l-=d}g/=p;l/=p;for(let i=p+1;i<a.length;i++){const d=a[i]-a[i-1];g=(g*(p-1)+Math.max(d,0))/p;l=(l*(p-1)+Math.max(-d,0))/p}return l===0?100:100-100/(1+g/l)};
+const fmt=(v,d)=>v==null?"-":v.toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
+const cls=v=>v>.2?"u":v<-.2?"d":"n";
+const vtxt=v=>v>=.5?"強い買い優勢":v>=.2?"買い優勢":v>-.2?"中立":v>-.5?"売り優勢":"強い売り優勢";
+
+function analyze(cs){
+  const n=cs.length;if(n<80)return null;
+  const c=cs.map(x=>x.c),p=c[n-1];
+  const tr=cs.map((x,i)=>i?Math.max(x.h-x.l,Math.abs(x.h-c[i-1]),Math.abs(x.l-c[i-1])):x.h-x.l);
+  const atr=mean(tr.slice(-14));
+  const e20=ema(c,20),e50=ema(c,50),e100=ema(c,100),e12=ema(c,12),e26=ema(c,26);
+  const m=e12.map((v,i)=>v-e26[i]),sg=ema(m,9),mh=m.map((v,i)=>v-sg[i]);
+  const h1=mh[n-1],h0=mh[n-2],r=rsi(c.slice(-150));
+  const w=c.slice(-20),mu=mean(w),sd=Math.sqrt(mean(w.map(v=>(v-mu)**2)))||1e-9,b=(p-(mu-2*sd))/(4*sd);
+  const kAt=i=>{const q=cs.slice(i-13,i+1),hi=Math.max(...q.map(x=>x.h)),lo=Math.min(...q.map(x=>x.l));return hi===lo?50:(c[i]-lo)/(hi-lo)*100};
+  const k=kAt(n-1),d=mean([kAt(n-1),kAt(n-2),kAt(n-3)]);
+  const tp=cs.map(x=>(x.h+x.l+x.c)/3),cw=tp.slice(-20),cm=mean(cw),cd=mean(cw.map(v=>Math.abs(v-cm)))||1e-9,cci=(tp[n-1]-cm)/(.015*cd);
+  let pdm=0,mdm=0,trs=0;
+  for(let i=n-14;i<n;i++){const u=cs[i].h-cs[i-1].h,v=cs[i-1].l-cs[i].l;pdm+=u>v&&u>0?u:0;mdm+=v>u&&v>0?v:0;trs+=tr[i]}
+  const pdi=pdm/trs*100,mdi=mdm/trs*100,adx=Math.abs(pdi-mdi)/((pdi+mdi)||1)*100;
+  const mid=(i,q)=>{const z=cs.slice(i-q+1,i+1);return(Math.max(...z.map(x=>x.h))+Math.min(...z.map(x=>x.l)))/2};
+  const tk=mid(n-1,9),kj=mid(n-1,26),sa=(mid(n-27,9)+mid(n-27,26))/2,sb=mid(n-27,52);
+  const ry=c.slice(-30),my=mean(ry),rl=ry.reduce((q,v,i)=>q+(i-14.5)*(v-my),0)/ry.reduce((q,_,i)=>q+(i-14.5)**2,0);
+  const vs=cs.slice(-50),vv=vs.reduce((q,x)=>q+x.v,0)||1,vwap=vs.reduce((q,x)=>q+x.v*(x.h+x.l+x.c)/3,0)/vv;
+  const rv=cs.slice(-5),tv=rv.reduce((q,x)=>q+x.v,0)||1,tr5=rv.reduce((q,x)=>q+x.tb,0)/tv;
+  const dl=cs.slice(-20).map(x=>2*x.tb-x.v),cvd=dl.slice(10).reduce((q,x)=>q+x,0)-dl.slice(0,10).reduce((q,x)=>q+x,0),cvs=cs.slice(-20).reduce((q,x)=>q+x.v,0)||1;
+  const parts=[
+    {n:"EMA配列",w:1.3,v:(Math.sign(e20[n-1]-e50[n-1])+Math.sign(e50[n-1]-e100[n-1])+Math.sign(p-e20[n-1]))/3},
+    {n:"MACD",w:1.1,v:clip(h1/(atr*.25))*.5+Math.sign(h1-h0)*.5},
+    {n:"RSI",w:.8,v:r<30?.8:r>70?-.8:clip((r-50)/25)*.6},
+    {n:"ボリバン",w:.8,v:b<.05?.8:b>.95?-.8:clip((.5-b)*.8)},
+    {n:"ストキャス",w:.7,v:k<20&&k>d?1:k>80&&k<d?-1:clip((k-50)/100)},
+    {n:"DMI/ADX",w:1,v:clip((pdi-mdi)/((pdi+mdi)||1)*2)*clip(adx/25)},
+    {n:"一目均衡表",w:1,v:clip((tk>kj?.5:-.5)+(p>Math.max(sa,sb)?.5:p<Math.min(sa,sb)?-.5:0))},
+    {n:"回帰傾き",w:.9,v:clip(rl*12/atr)},
+    {n:"CCI",w:.6,v:cci<-100?.8:cci>100?-.8:clip(cci/250)},
+    {n:"ROC",w:.7,v:clip((p-c[n-11])/(atr*3))},
+    {n:"売買デルタ",w:1.1,v:clip((tr5-.5)*10)},
+    {n:"CVD加速",w:.8,v:clip(cvd/cvs*3)},
+    {n:"VWAP乖離",w:.8,v:clip((p-vwap)/(atr*2))}
+  ];
+  const sw=parts.reduce((q,x)=>q+x.w,0),score=parts.reduce((q,x)=>q+x.w*x.v,0)/sw;
+  const atrs=[];for(let i=n-100;i<n;i++)atrs.push(mean(tr.slice(i-13,i+1)));
+  const vp=atrs.filter(x=>x<=atr).length/atrs.length;
+  const z=cs.slice(-20);
+  return{score,parts,price:p,atr,adx,pdi,mdi,vp,r,e20,e50,mh,hi:Math.max(...z.map(x=>x.h)),lo:Math.min(...z.map(x=>x.l)),vwap,tr5};
+}
+
+function buildCal(cs,h=HZ){
+  const out=[];
+  for(let k=80;k+h<=cs.length;k++){
+    const a=analyze(cs.slice(0,k));if(!a)continue;
+    const df=cs[k-1+h].c-cs[k-1].c;if(df!==0)out.push({s:a.score,u:df>0?1:0});
+  }
+  return out;
+}
+function prob(cal,score){
+  const nr=cal.filter(x=>Math.abs(x.s-score)<=.15),n=nr.length,u=nr.reduce((q,x)=>q+x.u,0);
+  return{p:(u+(.5+.08*score)*25)/(n+25),n};
+}
+
+function spark(a,w,h,col){
+  const mn=Math.min(...a),mx=Math.max(...a),sp=mx-mn||1;
+  const pts=a.map((v,i)=>(i/(a.length-1)*w).toFixed(1)+","+(h-2-(v-mn)/sp*(h-4)).toFixed(1)).join(" ");
+  return`<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
+}
+
+
+async function fk(tf,lim){
+  const j=await fetch(`https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=${tf}&limit=${lim}`).then(r=>r.json());
+  if(!Array.isArray(j))throw 0;
+  return j.map(k=>({t:k[0],o:+k[1],h:+k[2],l:+k[3],c:+k[4],v:+k[5],tb:+k[9]}));
+}
+function upd(t,cs){
+  const o=S.k[t]||{};o.cs=cs;o.a=analyze(cs);
+  const key=cs.length>1?t+cs[cs.length-2].t:"";
+  if(t===S.tf&&o.key!==key){o.key=key;o.cal=buildCal(cs.slice(0,-1))}
+  if(t==="1m"&&o.bkey!==key+BO.hz){o.bkey=key+BO.hz;o.calBO=buildCal(cs.slice(0,-1),BO.hz)}
+  S.k[t]=o;
+}
+async function loadDv(){
+  const g=u=>fetch(u).then(r=>r.json()),F="https://fapi.binance.com";
+  const r=await Promise.allSettled([g(F+"/fapi/v1/premiumIndex?symbol=BTCUSDT"),g(F+"/futures/data/openInterestHist?symbol=BTCUSDT&period=5m&limit=30"),g(F+"/futures/data/globalLongShortAccountRatio?symbol=BTCUSDT&period=5m&limit=1"),g(F+"/futures/data/takerlongshortRatio?symbol=BTCUSDT&period=5m&limit=6"),g("https://api.binance.com/api/v3/depth?symbol=BTCUSDT&limit=1000"),g("https://api.alternative.me/fng/?limit=1")]);
+  const v=r.map(x=>x.status==="fulfilled"?x.value:null),d=S.dv;
+  if(v[0]&&v[0].lastFundingRate!=null){d.f=+v[0].lastFundingRate;d.mark=+v[0].markPrice}
+  if(Array.isArray(v[1])&&v[1].length>1){d.oi=+v[1][v[1].length-1].sumOpenInterestValue;d.oic=d.oi/+v[1][0].sumOpenInterestValue-1}
+  if(Array.isArray(v[2])&&v[2].length)d.ls=+v[2][v[2].length-1].longShortRatio;
+  if(Array.isArray(v[3])&&v[3].length)d.tk=mean(v[3].map(x=>+x.buySellRatio));
+  if(v[4]&&v[4].bids&&v[4].asks){
+    const bd=v[4].bids,ak=v[4].asks,m=(+bd[0][0]+ +ak[0][0])/2,band=Math.min(m-+bd[bd.length-1][0],+ak[ak.length-1][0]-m);
+    const bs=bd.filter(x=>+x[0]>=m-band).reduce((q,x)=>q+ +x[1],0),as=ak.filter(x=>+x[0]<=m+band).reduce((q,x)=>q+ +x[1],0);
+    d.imb=(bs-as)/((bs+as)||1);
+  }
+  if(v[5]&&v[5].data&&v[5].data[0])d.fg=+v[5].data[0].value;
+}
+async function load(){
+  try{
+    const set=[...new Set([S.tf,...MT])];
+    const rs=await Promise.all(set.map(t=>fk(t,t===S.tf?500:300)));
+    set.forEach((t,i)=>upd(t,rs[i]));
+    $("#er").classList.remove("on");$("#lv").classList.remove("off");
+  }catch(e){
+    if(!S.k[S.tf])$("#er").classList.add("on");
+    $("#lv").classList.add("off");
+  }
+  try{await loadDv()}catch(e){}
+  render();
+}
+function dparts(){
+  const d=S.dv,o=[],k5=S.k["5m"];
+  if(d.f!=null)o.push({n:"ファンディング",w:1,v:clip(-(d.f-.0001)/.0004)});
+  if(d.oic!=null&&k5&&k5.cs.length>31){const dp=k5.cs[k5.cs.length-1].c/k5.cs[k5.cs.length-31].c-1;o.push({n:"建玉×価格",w:1,v:Math.sign(dp)*clip(Math.abs(dp)/.01)*(d.oic>0?1:.4)})}
+  if(d.ls!=null)o.push({n:"L/S比(逆張り)",w:.8,v:clip(-(d.ls-1)*1.5)});
+  if(d.tk!=null)o.push({n:"テイカー比",w:.8,v:clip((d.tk-1)*3)});
+  if(d.imb!=null)o.push({n:"板の偏り",w:.7,v:clip(d.imb*3)});
+  if(d.fg!=null)o.push({n:"恐怖と強欲",w:.6,v:clip((50-d.fg)/60)});
+  return o;
+}
+function beep(dir){
+  try{
+    S.ac=S.ac||new(window.AudioContext||window.webkitAudioContext)();if(S.ac.state==="suspended")S.ac.resume();
+    (dir>0?[660,880,1175]:[880,660,440]).forEach((hz,i)=>{
+      const o=S.ac.createOscillator(),g=S.ac.createGain(),t=S.ac.currentTime+i*.17;
+      o.type="triangle";o.frequency.value=hz;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.3,t+.02);g.gain.exponentialRampToValueAtTime(.001,t+.3);
+      o.connect(g).connect(S.ac.destination);o.start(t);o.stop(t+.32);
+    });
+  }catch(e){}
+}
+const card=(l,v,s,c)=>`<div class="card"><div class="sm">${l}</div><div class="big ${c||""}">${v}</div><div class="sm">${s||""}</div></div>`;
+function renderLq(){
+  $("#lq").innerHTML=S.liq.length?S.liq.slice(0,10).map(x=>`<div><span class="${x.side==="SELL"?"d":"u"}">${x.side==="SELL"?"ロング清算":"ショート清算"}</span><span>${fmt(x.usd,0)} USD</span><span style="color:var(--mu)">${new Date(x.t).toTimeString().slice(0,8)}</span></div>`).join(""):'<span class="sm">待機中…大口の強制決済が出るとここに流れます</span>';
+}
+function render(){
+  const o=S.k[S.tf];if(!o||!o.a)return;
+  const cs=o.cs,n=cs.length,last=cs[n-1].c,chg=(last/cs[Math.max(0,n-1-BPD[S.tf])].c-1)*100,a=o.a,d=S.dv;
+  const dps=dparts(),ds=dps.length?dps.reduce((q,x)=>q+x.w*x.v,0)/dps.reduce((q,x)=>q+x.w,0):null;
+  const comb=ds==null?a.score:a.score*.75+ds*.25;
+  const tp=[`BTC <b>${fmt(last,1)}</b> <span class="${chg>=0?"u":"d"}">${chg>=0?"▲":"▼"}${Math.abs(chg).toFixed(2)}%</span>`];
+  if(d.f!=null)tp.push(`FUNDING <b>${(d.f*100).toFixed(4)}%</b>`);
+  if(d.oi)tp.push(`OI <b>${(d.oi/1e9).toFixed(2)}B</b>`);
+  if(d.fg!=null)tp.push(`FEAR&amp;GREED <b>${d.fg}</b>`);
+  $("#tp").innerHTML=[0,1].map(()=>tp.map(x=>`<span>${x}</span>`).join("")).join("");
+  $("#rail").innerHTML=TFS.map(t=>`<button data-f="${t}" class="${t===S.tf?"on":""}"><b>${t.toUpperCase()}</b><small>${TFM[t]<=60?"短期":"中期"}</small></button>`).join("");
+  $("#tf").innerHTML=TFS.map(t=>`<button data-f="${t}" class="${t===S.tf?"on":""}">${t.toUpperCase()}</button>`).join("");
+  const mt=MT.map(t=>({t,a:S.k[t]&&S.k[t].a})).filter(x=>x.a);
+  $("#wl").innerHTML=mt.map(x=>{const w=Math.abs(x.a.score)*50,l=x.a.score>=0?50:50-w;return`<button class="mr ${x.t===S.tf?"on":""}" data-f="${x.t}"><b>${x.t.toUpperCase()}</b><div class="bar"><i style="left:${l}%;width:${w}%;background:${x.a.score>=0?"var(--up)":"var(--dn)"}"></i></div><span class="chip ${cls(x.a.score)}">${vshort(x.a.score)}</span></button>`}).join("");
+  const bu=mt.filter(x=>x.a.score>=.2).length,be=mt.filter(x=>x.a.score<=-.2).length;
+  $("#al").className="al"+(bu>=4?" hot":be>=4?" hotd":"");
+  $("#al").textContent=`時間足の一致: 買い ${bu} / 売り ${be}(${mt.length}本中)`+(bu>=4?" 上位足まで買い優勢":be>=4?" 上位足まで売り優勢":"");
+  const dir=bu>=4&&comb>.25?1:be>=4&&comb<-.25?-1:0;
+  if(dir!==S.al){if(dir&&S.snd)beep(dir);S.al=dir}
+  $("#nm").innerHTML=`ビットコイン  BTCUSDT <span class="chip n" style="font-size:10px;vertical-align:middle">${TFM[S.tf]<=60?"短期":"スイング"}</span>`;
+  $("#pr").innerHTML=`${fmt(last,1)} <small class="${chg>=0?"u":"d"}" style="font-size:14px">${chg>=0?"▲":"▼"}${Math.abs(chg).toFixed(2)}%</small>`;
+  $("#nd").style.transform=`rotate(${comb*80}deg)`;
+  $("#vd").textContent=vtxt(comb);$("#vd").className="verdict "+cls(comb);
+  const pr=prob(o.cal||[],a.score),ph=Math.round(pr.p*100);
+  $("#ph").textContent=`UP ${ph}%`;$("#pl").textContent=`DOWN ${100-ph}%`;$("#pbar").style.width=ph+"%";
+  $("#pn").textContent=`${HZ}本後(約${span(HZ*TFM[S.tf])}後)の方向 / 売買フロー込みのテクニカル判定を直近${pr.n}件の実績で校正`;
+  const sd=comb>=0?1:-1;
+  $("#kv").innerHTML=`<span>直近20本 高値(抵抗)</span><b>${fmt(a.hi,1)}</b><span>直近20本 安値(支持)</span><b>${fmt(a.lo,1)}</b><span>VWAP(50本)</span><b>${fmt(a.vwap,1)}</b><span>ATR(14)</span><b>${fmt(a.atr,1)}</b><span>参考 損切ライン(1.5ATR)</span><b class="d">${fmt(a.price-sd*a.atr*1.5,1)}</b><span>参考 目標ライン(3ATR)</span><b class="u">${fmt(a.price+sd*a.atr*3,1)}</b>`;
+  $("#ind").innerHTML=a.parts.concat(dps).map(x=>{const w=Math.abs(x.v)*50,l=x.v>=0?50:50-w;return`<div class="ib"><span>${x.n}</span><div class="bar"><i style="left:${l}%;width:${w}%;background:${x.v>=0?"var(--up)":"var(--dn)"}"></i></div><b class="${cls(x.v)}">${x.v>=0?"+":""}${x.v.toFixed(2)}</b></div>`}).join("");
+  $("#rg").innerHTML=`<span>相場環境</span><b>${a.adx>=25?"トレンド":a.adx<18?"レンジ":"移行期"} (ADX ${a.adx.toFixed(0)})</b><span>ボラティリティ</span><b>${Math.round(a.vp*100)}パーセンタイル</b><span>テクニカル+フロー</span><b class="${cls(a.score)}">${(a.score*100).toFixed(0)}</b><span>デリバティブ</span><b class="${ds==null?"":cls(ds)}">${ds==null?"-":(ds*100).toFixed(0)}</b><span>総合スコア</span><b class="${cls(comb)}">${(comb*100).toFixed(0)} / 100</b>`;
+  $("#rt").innerHTML=[
+    card("ファンディング",d.f!=null?(d.f*100).toFixed(4)+"%":"-",d.f>.0003?"ロング過熱ぎみ":d.f<0?"ショート優勢":"標準圏",d.f>.0003?"d":d.f<0?"u":""),
+    card("建玉(OI)",d.oi?(d.oi/1e9).toFixed(2)+"B":"-",d.oic!=null?`2.5時間で ${(d.oic*100).toFixed(2)}%`:"",d.oic>0?"u":"d"),
+    card("ロング/ショート比",d.ls!=null?d.ls.toFixed(2):"-",d.ls>1.5?"ロング偏重":d.ls<.8?"ショート偏重":"拮抗"),
+    card("テイカー売買比",d.tk!=null?d.tk.toFixed(2):"-","1超で成行買いが優勢",d.tk>1?"u":"d"),
+    card("板の偏り",d.imb!=null?(d.imb*100).toFixed(1)+"%":"-","プラスは買い板が厚い",d.imb>0?"u":"d"),
+    card("恐怖と強欲",d.fg!=null?d.fg:"-",d.fg<25?"極度の恐怖":d.fg>75?"極度の強欲":"中間圏",d.fg<25?"u":d.fg>75?"d":"n")
+  ].join("");
+  renderLq();boRender();boFx(comb);
+  draw({o:{cs,a},s:{d:1}});
+}
+function draw(cur){
+  const cv=$("#cv"),dpr=devicePixelRatio||1,W=cv.clientWidth,H=cv.clientHeight;
+  if(!W)return;
+  cv.width=W*dpr;cv.height=H*dpr;
+  const g=cv.getContext("2d");g.scale(dpr,dpr);
+  const cs=cur.o.cs,a=cur.o.a,N=W<500?55:90,n=cs.length,v=cs.slice(-N),off=n-v.length,d=cur.s.d;
+  const PH=H*.76,MH=H*.18,top=6;
+  const c=cs.map(x=>x.c),bb=v.map((_,i)=>{const q=c.slice(off+i-19,off+i+1);if(q.length<20)return null;const m=mean(q),s=Math.sqrt(mean(q.map(x=>(x-m)**2)));return[m+2*s,m-2*s]});
+  let hi=Math.max(...v.map(x=>x.h)),lo=Math.min(...v.map(x=>x.l));
+  bb.forEach(b=>{if(b){hi=Math.max(hi,b[0]);lo=Math.min(lo,b[1])}});
+  const pad=(hi-lo)*.06,Y=p=>top+(1-(p-(lo-pad))/((hi+pad)-(lo-pad)))*(PH-top),bw=(W-62)/N,X=i=>i*bw+bw/2;
+  g.font="11px 'Chakra Petch',sans-serif";g.textAlign="left";
+  g.strokeStyle="rgba(61,224,255,.08)";g.fillStyle="#6f86a6";g.lineWidth=1;
+  for(let i=0;i<=5;i++){const p=lo+(hi-lo)*i/5,y=Y(p);g.beginPath();g.moveTo(0,y);g.lineTo(W-58,y);g.stroke();g.fillText(fmt(p,d),W-56,y+4)}
+  g.beginPath();let st=false;bb.forEach((b,i)=>{if(!b)return;st?g.lineTo(X(i),Y(b[0])):g.moveTo(X(i),Y(b[0]));st=true});
+  for(let i=bb.length-1;i>=0;i--)if(bb[i])g.lineTo(X(i),Y(bb[i][1]));
+  g.closePath();g.fillStyle="rgba(61,224,255,.06)";g.fill();
+  v.forEach((x,i)=>{
+    const up=x.c>=x.o,col=up?"#2dffa4":"#ff4d6a";g.strokeStyle=g.fillStyle=col;
+    g.beginPath();g.moveTo(X(i),Y(x.h));g.lineTo(X(i),Y(x.l));g.stroke();
+    g.fillRect(X(i)-bw*.34,Math.min(Y(x.o),Y(x.c)),bw*.68,Math.max(1.5,Math.abs(Y(x.o)-Y(x.c))));
+  });
+  [[a.e20,"#ffc94d"],[a.e50,"#a78bfa"]].forEach(([e,col])=>{
+    g.strokeStyle=col;g.lineWidth=1.6;g.beginPath();
+    v.forEach((_,i)=>{i?g.lineTo(X(i),Y(e[off+i])):g.moveTo(X(i),Y(e[off+i]))});g.stroke();
+  });
+  g.lineWidth=1;g.setLineDash([4,4]);
+  [[a.hi,"rgba(255,77,106,.6)"],[a.lo,"rgba(45,255,164,.6)"]].forEach(([p,col])=>{g.strokeStyle=col;g.beginPath();g.moveTo(0,Y(p));g.lineTo(W-58,Y(p));g.stroke()});
+  g.setLineDash([]);
+  const lp=cs[n-1].c,ly=Y(lp);
+  g.fillStyle="#3de0ff";g.fillRect(W-60,ly-9,60,18);g.fillStyle="#021018";g.font="700 11px 'Chakra Petch',sans-serif";g.fillText(fmt(lp,d),W-57,ly+4);
+  const mh=a.mh.slice(-N),mx=Math.max(...mh.map(Math.abs))||1,y0=PH+8+MH/2;
+  mh.forEach((x,i)=>{g.fillStyle=x>=0?"rgba(45,255,164,.7)":"rgba(255,77,106,.7)";const h=Math.abs(x)/mx*MH/2;g.fillRect(X(i)-bw*.3,x>=0?y0-h:y0,bw*.6,Math.max(1,h))});
+  g.fillStyle="#6f86a6";g.font="10px 'Chakra Petch',sans-serif";g.fillText("MACD HIST",4,PH+20);
+  g.fillText("EMA20",4,16);g.fillStyle="#ffc94d";g.fillRect(44,10,14,3);g.fillStyle="#6f86a6";g.fillText("EMA50",66,16);g.fillStyle="#a78bfa";g.fillRect(106,10,14,3);
+}
+
+
+function wsOpen(){
+  if(S.ws){S.ws.onclose=null;S.ws.close()}
+  const w=new WebSocket(`wss://stream.binance.com:9443/ws/btcusdt@kline_${S.tf}`);
+  w.onmessage=e=>{
+    const k=JSON.parse(e.data).k,o=S.k[S.tf];if(!o||k.i!==S.tf)return;
+    const c={t:k.t,o:+k.o,h:+k.h,l:+k.l,c:+k.c,v:+k.v,tb:+k.V},cs=o.cs,L=cs[cs.length-1];
+    if(L.t===c.t)cs[cs.length-1]=c;else if(c.t>L.t){cs.push(c);if(cs.length>700)cs.shift();boClose()}
+    const t=Date.now();if(t-S.lt<500)return;S.lt=t;
+    o.a=analyze(cs);render();
+  };
+  w.onclose=()=>setTimeout(wsOpen,3000);
+  S.ws=w;
+}
+function liqOpen(){
+  const w=new WebSocket("wss://fstream.binance.com/ws/btcusdt@forceOrder");
+  w.onmessage=e=>{
+    const m=JSON.parse(e.data).o;if(!m)return;
+    S.liq.unshift({t:m.T,side:m.S,usd:+m.z*+m.ap||+m.q*+m.p});S.liq=S.liq.slice(0,30);renderLq();
+  };
+  w.onclose=()=>setTimeout(liqOpen,5000);
+  S.lw=w;
+}
+function setTf(t){
+  S.tf=t;S.k[t]&&S.k[t].a?render():0;wsOpen();load();
+}
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-f]");if(b&&b.dataset.f!==S.tf)setTf(b.dataset.f);
+});
+$("#tabs").onclick=e=>{
+  const b=e.target.closest("button");if(!b)return;
+  $("#mn").dataset.tab=b.dataset.t;[...$("#tabs").children].forEach(x=>x.classList.toggle("on",x===b));
+  scrollTo(0,0);render();
+};
+$("#bl").onclick=()=>{S.snd=!S.snd;$("#bl").textContent=S.snd?"🔔":"🔕";if(S.snd)beep(1)};
+const two=v=>String(v).padStart(2,"0");
+setInterval(()=>{
+  const t=new Date();
+  $("#jt").textContent=new Date(t.getTime()+(t.getTimezoneOffset()+540)*60000).toTimeString().slice(0,8);
+  $("#ut").textContent=two(t.getUTCHours())+":"+two(t.getUTCMinutes())+":"+two(t.getUTCSeconds());
+},1000);
+addEventListener("resize",()=>{if(S.k[S.tf])render()});
+const BO={on:false,pend:null,lock:false,h:[],hz:3};
+try{BO.h=JSON.parse(localStorage.getItem("pb_h")||"[]")}catch(e){}
+const bsave=()=>{try{localStorage.setItem("pb_h",JSON.stringify(BO.h.slice(0,200)))}catch(e){}};
+function cmb(a){
+  const d=dparts();
+  return d.length?a.score*.75+d.reduce((q,x)=>q+x.w*x.v,0)/d.reduce((q,x)=>q+x.w,0)*.25:a.score;
+}
+function boClose(){
+  if(!BO.on||S.tf!=="1m"||BO.lock||BO.pend)return;
+  const o=S.k["1m"];if(!o)return;
+  const cs=o.cs.slice(0,-1),a=analyze(cs);if(!a)return;
+  const comb=cmb(a),dir=Math.sign(comb),th=+$("#bth").value/100;
+  const agree=a.parts.filter(x=>Math.abs(x.v)>.3&&Math.sign(x.v)===dir).length;
+  const opp=MT.filter(t=>S.k[t]&&S.k[t].a&&Math.sign(S.k[t].a.score)===-dir&&Math.abs(S.k[t].a.score)>=.2).length;
+  const pr=prob(o.calBO||o.cal||[],a.score);
+  if(Math.abs(comb)<th||agree<Math.ceil(a.parts.length*.4)||a.vp<.25||opp>=3)return;
+  if(dir>0&&pr.p<.5||dir<0&&pr.p>.5)return;
+  const L=o.cs[o.cs.length-1],q={t:L.t,dir,entry:cs[cs.length-1].c,exp:L.t+BO.hz*60000,res:null};
+  BO.pend=q;BO.h.unshift(q);bsave();
+  if(S.snd)beep(dir);
+  fxFire(dir);
+  if(navigator.vibrate)navigator.vibrate(dir>0?[120]:[120,80,120]);
+  boRender();
+}
+function boTick(){
+  const q=BO.pend,o=S.k["1m"];
+  if(!S.demo&&document.body.classList.contains("soon"))$("#sc").textContent="判定まで "+(60-Math.floor(Date.now()/1000)%60)+"秒";
+  if(!q)return;
+  const rem=q.exp-Date.now();
+  if(rem<=0&&o){
+    const p=o.cs[o.cs.length-1].c,df=(p-q.entry)*q.dir;
+    q.res=df>0?"W":df<0?"L":"D";q.out=p;BO.pend=null;
+    let st=0;for(const x of BO.h){if(x.res==="L")st++;else if(x.res==="W")break}
+    if(st>=(+$("#bml").value||3))BO.lock=true;
+    bsave();boRender();return;
+  }
+  $("#bcd").textContent=two(Math.floor(rem/60000))+":"+two(Math.floor(rem%60000/1000));
+}
+function boRender(){
+  const q=BO.pend,el=$("#bsig");
+  $("#bh2").textContent=`Binary Mode (${BO.hz}分)`;
+  el.textContent=q?(q.dir>0?"HIGH ▲":"LOW ▼"):BO.lock?"STOP":BO.on?(S.tf==="1m"?"WAIT":"1M待ち"):"OFF";
+  el.className="bs "+(q?(q.dir>0?"u":"d"):"n");
+  $("#bsub").textContent=q?"エントリー "+fmt(q.entry,1)+" / "+BO.hz+"分後に判定":BO.lock?"連敗上限で停止中":BO.on?(S.tf==="1m"?"確定足で条件がそろうのを待っています":"1分足に切り替えてください"):"開始を押すと1分足に切り替わります";
+  if(!q)$("#bcd").textContent="--:--";
+  $("#bon").textContent=BO.on?"BOモード停止":"BOモード開始";
+  $("#bk").classList.toggle("on",BO.lock);
+  const dn=BO.h.filter(x=>x.res==="W"||x.res==="L"),W=dn.filter(x=>x.res==="W").length,L=dn.length-W,po=+$("#bpo").value;
+  $("#bw").textContent=W;$("#bl2").textContent=L;
+  $("#br").textContent=dn.length?(W/dn.length*100).toFixed(1)+"%":"-";
+  $("#bn").textContent=po>1?(100/po).toFixed(1)+"%":"-";
+  $("#bh").innerHTML=BO.h.slice(0,12).map(x=>`<div><span>${new Date(x.t).toTimeString().slice(0,8)}</span><span class="${x.dir>0?"u":"d"}">${x.dir>0?"HIGH":"LOW"}</span><span>${fmt(x.entry,1)} → ${x.out?fmt(x.out,1):"-"}</span><span class="${x.res==="W"?"u":x.res==="L"?"d":""}">${x.res==="W"?"勝ち":x.res==="L"?"負け":x.res==="D"?"引分":"判定中"}</span></div>`).join("");
+}
+function charge(dir){
+  try{
+    S.ac=S.ac||new(window.AudioContext||window.webkitAudioContext)();if(S.ac.state==="suspended")S.ac.resume();
+    const o=S.ac.createOscillator(),g=S.ac.createGain(),t=S.ac.currentTime;
+    o.type="sawtooth";o.frequency.setValueAtTime(dir>0?260:520,t);o.frequency.exponentialRampToValueAtTime(dir>0?780:200,t+.55);
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.12,t+.08);g.gain.exponentialRampToValueAtTime(.001,t+.6);
+    o.connect(g).connect(S.ac.destination);o.start(t);o.stop(t+.62);
+  }catch(e){}
+}
+function fxFire(dir){
+  const f=$("#fx");f.className="";void f.offsetWidth;f.className=(dir>0?"up":"dn")+" on";
+  $("#fxt").textContent=dir>0?"HIGH ▲":"LOW ▼";
+  const box=$("#fxp");box.innerHTML="";
+  for(let i=0;i<52;i++){
+    const e=document.createElement("i"),a=Math.random()*6.283,r=130+Math.random()*340;
+    e.style.setProperty("--x",Math.cos(a)*r+"px");e.style.setProperty("--y",Math.sin(a)*r+"px");
+    e.style.animationDelay=Math.random()*.18+"s";box.appendChild(e);
+  }
+  document.body.classList.remove("shk");void document.body.offsetWidth;document.body.classList.add("shk");
+  clearTimeout(S.fxt);S.fxt=setTimeout(()=>{f.className="";document.body.classList.remove("shk")},2700);
+}
+function soonSet(on,dir,pg){
+  const el=$("#soon");
+  document.body.classList.toggle("soon",on);
+  document.body.classList.toggle("su",on&&dir>0);document.body.classList.toggle("sd",on&&dir<0);
+  if(on){
+    el.className="on "+(dir>0?"u":"d");
+    $("#sl").textContent="SIGNAL SOON "+(dir>0?"▲ HIGH":"▼ LOW");
+    $("#sp").style.width=Math.min(100,pg*100)+"%";
+    if(S.soonDir!==dir){S.soonDir=dir;if(S.snd)charge(dir)}
+  }else{el.className="";S.soonDir=0}
+}
+function boFx(comb){
+  if(S.demo)return;
+  const pg=Math.abs(comb)/(+$("#bth").value/100);
+  soonSet(BO.on&&S.tf==="1m"&&!BO.pend&&!BO.lock&&pg>=.7,comb>0?1:-1,pg);
+}
+$("#bfx").onclick=()=>{
+  S.demo=true;S.soonDir=0;soonSet(true,1,.85);$("#sc").textContent="TEST";
+  setTimeout(()=>{soonSet(false);S.demo=false;const d=Math.random()<.5?1:-1;if(S.snd)beep(d);fxFire(d)},2200);
+};
+$("#bon").onclick=()=>{
+  BO.on=!BO.on;
+  if(BO.on){S.snd=true;$("#bl").textContent="🔔";beep(1);BO.lock=false;BO.pend=null;BO.h.forEach(x=>{if(x.res===null)x.res="D"});if(S.tf!=="1m")setTf("1m")}
+  boRender();
+};
+$("#bun").onclick=()=>{BO.lock=false;boRender()};
+$("#bcl").onclick=()=>{BO.h=[];BO.pend=null;bsave();boRender()};
+$("#bth").oninput=()=>{$("#bthv").textContent=($("#bth").value/100).toFixed(2)};
+$("#bpo").oninput=boRender;
+$("#bhz").onchange=()=>{BO.hz=+$("#bhz").value;const o=S.k["1m"];if(o){o.calBO=buildCal(o.cs.slice(0,-1),BO.hz);o.bkey=o.key+BO.hz}boRender()};
+setInterval(boTick,500);
+load();wsOpen();liqOpen();boRender();setInterval(load,15000);
+</script>
+</body>
+</html>
